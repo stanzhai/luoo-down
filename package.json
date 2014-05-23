@@ -8,7 +8,8 @@
     "request": "^2.36.0",
     "request-progress": "^0.3.1",
     "term-list": "^0.2.1",
-    "open": "0.0.5"
+    "open": "0.0.5",
+    "colors": "~0.6.2"
   },
   "devDependencies": {},
   "scripts": {

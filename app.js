@@ -1,11 +1,13 @@
 var http = require('http')
   , fs = require('fs')
   , path = require('path')
+  , readline = require('readline')
   , request = require('request')
   , progress = require('request-progress')
   , ProgressBar = require('progress')
   , open = require('open')
-  , List = require('./lib/term-list-enhanced');
+  , colors = require('colors')
+  , List = require('term-list');
 
 var bar = new ProgressBar('正在下载：:title [:bar] :percent :etas', {
   complete: '=',
@@ -14,47 +16,53 @@ var bar = new ProgressBar('正在下载：:title [:bar] :percent :etas', {
   clear: true,
   total: 100
 });
-var menu = new List({
-  labelKey: 'title'
+
+var menu = new List({ marker: '>'.red + ' ', markerLength: 2 });
+menu.on('keypress', function(key, index) {
+  if (key.name === 'return') {
+    if (index < 0 || isDownloading != -1) {
+      return;
+    }
+    var mp3Info = playList[index];
+    downloadMP3(mp3Info);
+  } else if (key.name === 'q') {
+    return menu.stop();
+  }
 });
 
+var currFm = '';
+var playList = null;
+var isDownloading = -1;   // which music is downloading
 // make download dir if not exists
 var downloadDir = './downloads'
 if (!fs.existsSync(downloadDir)) {
   fs.mkdirSync(downloadDir);
 }
-var currFm = '';
 
-request('http://www.luoo.net/', function (err, res, html) {
-  var playList = JSON.parse(findContent(html, 'var volPlaylist = ', '}];', 2));
-  var fmTitle = findContent(html, '<h1 class="fm-title">', '</h1>', 0);
-  var fmIntro = findContent(html, '<p class="fm-intro">', '</p>', 0);
-  var fmCover = 'http://img' + findContent(html, 'http://img', '"', 0);
-  var fmPath = path.join(downloadDir, fmTitle);
-  var introPath = path.join(downloadDir, fmTitle, fmTitle + '.txt');
-  var coverPath = path.join(downloadDir, fmTitle, fmTitle + '.jpg')
-  if (!fs.existsSync(fmPath)) {
-    fs.mkdirSync(fmPath);
-    fs.writeFile(introPath, fmIntro.replace(/<br>/g, '\r\n'));
-    request(fmCover).pipe(fs.createWriteStream(coverPath));
+function getFm(fmUrl) {
+  if (fmUrl.indexOf('http://www.luoo.net') == -1) {
+    setError('请提供落网的期刊地址，如：http://www.luoo.net/music/613');
+    return;
   }
-
-  currFm = fmTitle;
-  menu.adds(playList);
-  menu.start();
-});
-
-menu.on('keypress', function(key, index) {
-  if (key.name === 'return') {
-    var item = menu.item(index);
-    //if (bar.curr != 0) {
-    //  return;   // is downloading
-    //} 
-    downloadMP3(item);
-  } else if (key.name === 'q') {
-    return menu.exit();
-  }
-});
+  console.log('正在获取期刊信息...'.yellow);
+  request(fmUrl, function (err, res, html) {
+    // parse fm info and make music dir
+    playList = JSON.parse(findContent(html, 'var volPlaylist = ', '}];', 2));
+    var fmTitle = findContent(html, '<h1 class="fm-title">', '</h1>', 0);
+    currFm = fmTitle;
+    var fmIntro = findContent(html, '<p class="fm-intro">', '</p>', 0);
+    var fmCover = 'http://img' + findContent(html, 'http://img', '"', 0);
+    var fmPath = path.join(downloadDir, fmTitle);
+    var introPath = path.join(downloadDir, fmTitle, fmTitle + '.txt');
+    var coverPath = path.join(downloadDir, fmTitle, fmTitle + '.jpg')
+    if (!fs.existsSync(fmPath)) {
+      fs.mkdirSync(fmPath);
+      fs.writeFile(introPath, fmIntro.replace(/<br>/g, '\r\n'));
+      request(fmCover).pipe(fs.createWriteStream(coverPath));
+    }
+    setMenuInfo();
+  });
+}
 
 function findContent(html, key, endTag, offset) {
   var start = html.indexOf(key);
@@ -62,7 +70,19 @@ function findContent(html, key, endTag, offset) {
   return html.substring(start + key.length, end + offset);
 }
 
-// 下载歌曲
+function setMenuInfo() {
+  menu.add(-1, '[期刊名]:' + currFm);
+  menu.add(-2, '--------------------------------------------');
+  for (var i = 0; i < playList.length; i++) {
+    var info = playList[i];
+    menu.add(i, info.title + '[' + (info.artist + '-' + info.album).green + ']');
+  };
+  menu.add(-3, '--------------------------------------------');
+  menu.add(-4, 'luoo-down by Stan Zhai, 2014-5-24 night'.grey);
+  menu.start();
+  menu.select(0);
+} 
+
 function downloadMP3(mp3Info) {
   var coverFile = path.join(downloadDir, currFm, mp3Info.title + '.jpg');
   request(mp3Info.poster).pipe(fs.createWriteStream(coverFile));
@@ -72,18 +92,40 @@ function downloadMP3(mp3Info) {
     var lastReceived = 0;
     progress(request(mp3Info.mp3))
     .on('progress', function (state) {
+      isDownloading = mp3Info.id;
       bar.total = state.total;
       bar.tick(state.received - lastReceived, {title: mp3Info.title});
       lastReceived = state.received;
     })
     .pipe(fs.createWriteStream(mp3File))
     .on('close', function (err) {
-      // 下载结束后，重置下载条状态
+      // end download, reset bar state
       bar.tick(bar.total - bar.curr);
       bar.curr = 0;
+      isDownloading = -1;
     });
   } else {
     open(mp3File);
   }
 
 }
+
+function setError(err) {
+  console.log(err.red);
+}
+
+function main() {
+  var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  console.log('请输入您喜欢的落网期刊地址, 如：http://www.luoo.net/music/613');
+  var ask = '默认[http://www.luoo.net]:';
+  rl.question(ask, function(answer) {
+    getFm(answer || 'http://www.luoo.net');
+    rl.close();
+  });
+}
+
+main();
+
