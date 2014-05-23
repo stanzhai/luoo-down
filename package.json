@@ -1,0 +1,31 @@
+{
+  "name": "luoo-down",
+  "version": "1.0.0",
+  "description": "luoo.net music downloader",
+  "main": "app.js",
+  "dependencies": {
+    "progress": "^1.1.5",
+    "request": "^2.36.0",
+    "request-progress": "^0.3.1",
+    "term-list": "^0.2.1",
+    "open": "0.0.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stanzhai/luoo-down.git"
+  },
+  "keywords": [
+    "luoo.net",
+    "music"
+  ],
+  "author": "stanzhai",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stanzhai/luoo-down/issues"
+  },
+  "homepage": "https://github.com/stanzhai/luoo-down"
+}
