@@ -81,7 +81,7 @@ function setMenuInfo() {
     menu.add(i, (i + 1) + '. ' + info.title + '[' + (info.artist + '-' + info.album).green + ']');
   };
   menu.add(-3, Array(60).join('-'));
-  menu.add(-4, 'luoo-down by Stan Zhai, 2014-5-24 night'.grey.underline);
+  menu.add(-4, 'Fork me on GitHub: luoo-down by Stan Zhai, 2014-5-24 night'.grey.underline);
   menu.start();
   menu.select(0);
 } 
