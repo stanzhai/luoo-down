@@ -55,7 +55,7 @@ function getFm(fmUrl) {
     var coverPath = path.join(downloadDir, fmTitle, fmTitle + '.jpg')
     if (!fs.existsSync(fmPath)) {
       fs.mkdirSync(fmPath);
-      fs.writeFile(introPath, fmIntro.replace(/<br>/g, '\r\n'));
+      fs.writeFile(introPath, fmIntro.replace(/<br>/g, '\r\n').trim());
       request(fmCover).pipe(fs.createWriteStream(coverPath));
     }
     setMenuInfo();

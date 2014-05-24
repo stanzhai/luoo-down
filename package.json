@@ -4,12 +4,12 @@
   "description": "luoo.net music downloader",
   "main": "app.js",
   "dependencies": {
-    "progress": "^1.1.5",
-    "request": "^2.36.0",
-    "request-progress": "^0.3.1",
-    "term-list": "^0.2.1",
     "open": "0.0.5",
-    "colors": "~0.6.2"
+    "colors": "~0.6.2",
+    "progress": "~1.1.5",
+    "request-progress": "~0.3.1",
+    "request": "~2.36.0",
+    "term-list": "~0.2.1"
   },
   "devDependencies": {},
   "scripts": {
