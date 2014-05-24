@@ -1,5 +1,4 @@
-var http = require('http')
-  , fs = require('fs')
+var fs = require('fs')
   , path = require('path')
   , readline = require('readline')
   , request = require('request')
@@ -43,10 +42,6 @@ menu.on('keypress', function(key, index) {
 });
 
 function getFm(fmUrl) {
-  if (fmUrl.indexOf('http://www.luoo.net') == -1) {
-    setError('请提供落网的期刊地址，如：http://www.luoo.net/music/613');
-    return;
-  }
   console.log('正在获取期刊信息...'.yellow);
   request(fmUrl, function (err, res, html) {
     // parse fm info and make music dir
@@ -122,13 +117,23 @@ function main() {
     input: process.stdin,
     output: process.stdout
   });
-  console.log('请输入您喜欢的落网期刊地址, 如：http://www.luoo.net/music/613');
+  console.log('请输入您喜欢的落网期刊地址或期刊号\r\n如：http://www.luoo.net/music/613或613');
   var ask = '默认[http://www.luoo.net]:';
   rl.question(ask, function(answer) {
-    getFm(answer || 'http://www.luoo.net');
+    if (/^\d+$/.test(answer)) {
+      answer = 'http://www.luoo.net/music/' + answer;
+    } else {
+      answer = answer || 'http://www.luoo.net';
+    }
+    getFm(answer);
     rl.close();
   });
 }
+
+process.on('uncaughtException', function(err) {
+  setError(err.message + '\r\n这个错误有可能是您输入了错误的期刊导致');
+  main();
+});
 
 main();
 

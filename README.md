@@ -15,3 +15,7 @@ This is a simple of fetching <http://www.luoo.net/music/613>
 4. After the music has been downloaded, press ENTER open the music in you preferred application !
 5. The downloaded music path is `downloads`, under this folder you will see:
   ![download path](http://stanzhai.github.io/images/project/luoo-down-path.png)
+
+## License
+
+The MIT License (MIT)
