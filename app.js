@@ -17,9 +17,21 @@ var bar = new ProgressBar('正在下载：:title [:bar] :percent :etas', {
   total: 100
 });
 
+var currFm = '';
+var playList = null;
+var isDownloading = -1;   // which music is downloading
+// make download dir if not exists
+var downloadDir = './downloads'
+if (!fs.existsSync(downloadDir)) {
+  fs.mkdirSync(downloadDir);
+}
+
 var menu = new List({ marker: '>'.red + ' ', markerLength: 2 });
 menu.on('keypress', function(key, index) {
   if (key.name === 'return') {
+    if (index == -4) {
+      open('https://github.com/stanzhai/luoo-down');
+    }
     if (index < 0 || isDownloading != -1) {
       return;
     }
@@ -29,15 +41,6 @@ menu.on('keypress', function(key, index) {
     return menu.stop();
   }
 });
-
-var currFm = '';
-var playList = null;
-var isDownloading = -1;   // which music is downloading
-// make download dir if not exists
-var downloadDir = './downloads'
-if (!fs.existsSync(downloadDir)) {
-  fs.mkdirSync(downloadDir);
-}
 
 function getFm(fmUrl) {
   if (fmUrl.indexOf('http://www.luoo.net') == -1) {
@@ -72,13 +75,13 @@ function findContent(html, key, endTag, offset) {
 
 function setMenuInfo() {
   menu.add(-1, '[期刊名]:' + currFm);
-  menu.add(-2, '--------------------------------------------');
+  menu.add(-2, Array(60).join('-'));
   for (var i = 0; i < playList.length; i++) {
     var info = playList[i];
-    menu.add(i, info.title + '[' + (info.artist + '-' + info.album).green + ']');
+    menu.add(i, (i + 1) + '. ' + info.title + '[' + (info.artist + '-' + info.album).green + ']');
   };
-  menu.add(-3, '--------------------------------------------');
-  menu.add(-4, 'luoo-down by Stan Zhai, 2014-5-24 night'.grey);
+  menu.add(-3, Array(60).join('-'));
+  menu.add(-4, 'luoo-down by Stan Zhai, 2014-5-24 night'.grey.underline);
   menu.start();
   menu.select(0);
 } 
@@ -99,7 +102,7 @@ function downloadMP3(mp3Info) {
     })
     .pipe(fs.createWriteStream(mp3File))
     .on('close', function (err) {
-      // end download, reset bar state
+      // download ended, reset bar state
       bar.tick(bar.total - bar.curr);
       bar.curr = 0;
       isDownloading = -1;
