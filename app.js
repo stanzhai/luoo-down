@@ -77,7 +77,7 @@ function setMenuInfo() {
   };
   menu.add(-3, Array(60).join('-'));
   menu.add(-4, 'Fork me on GitHub: luoo-down by Stan Zhai, 2014-5-24 night'.grey.underline);
-  menu.add(-5, '仅供技术学习分享,音乐涉及版权,请勿批量下载,下载后请及时删除!'.inverse);
+  menu.add(-5, '仅供技术学习分享,音乐涉及版权,请勿批量下载,下载后请及时删除!'.red);
   menu.start();
   menu.select(0);
 } 
