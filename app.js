@@ -29,7 +29,7 @@ var menu = new List({ marker: '>'.red + ' ', markerLength: 2 });
 menu.on('keypress', function(key, index) {
   if (key.name === 'return') {
     if (index == -4) {
-      open('https://github.com/stanzhai/luoo-down');
+      open('https://github.com/stanzhai/luoo-down/fork');
     }
     if (index < 0 || isDownloading != -1) {
       return;
