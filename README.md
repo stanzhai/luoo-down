@@ -1,4 +1,4 @@
-luoo-down
+luoo-down【obsoleted】
 =========
 
 luoo-down is a [luoo.net-落网](http://www.luoo.net/) music downloader based on nodejs.
