@@ -1,7 +1,9 @@
 var fs = require('fs')
   , path = require('path')
+  , fmt = require('util').format
   , readline = require('readline')
   , request = require('request')
+  , cheerio = require('cheerio')
   , progress = require('request-progress')
   , ProgressBar = require('progress')
   , open = require('open')
@@ -17,7 +19,7 @@ var bar = new ProgressBar('正在下载：:title [:bar] :percent :etas', {
 });
 
 var currFm = '';
-var playList = null;
+var playList = [];
 var isDownloading = -1;   // which music is downloading
 // make download dir if not exists
 var downloadDir = './downloads'
@@ -44,12 +46,25 @@ menu.on('keypress', function(key, index) {
 function getFm(fmUrl) {
   console.log('正在获取期刊信息...'.yellow);
   request(fmUrl, function (err, res, html) {
+    // parse playlist
+    $ = cheerio.load(html);
+    $('li.track-item').each(function () {
+      var trackItem = $(this);
+      var mp3Info = {};
+      var titleInfo = trackItem.find('a.trackname').text().split('.');
+      mp3Info.id = titleInfo[0].trim();
+      mp3Info.title = titleInfo[1].trim();
+      mp3Info.mp3 = fmt('http://emo.luoo.net/low/luoo/radio%s/%s.mp3', $('span.vol-number').text(), mp3Info.id);
+      mp3Info.artist = trackItem.find('p.artist').text().split(':')[1].trim();
+      mp3Info.album = trackItem.find('p.album').text().split(':')[1].trim();
+      mp3Info.poster = trackItem.find('a.btn-action-share').attr('data-img');
+      playList.push(mp3Info);
+    });
     // parse fm info and make music dir
-    playList = JSON.parse(findContent(html, 'var volPlaylist = ', '}];', 2));
-    var fmTitle = findContent(html, '<h1 class="fm-title">', '</h1>', 0);
+    var fmTitle = $('span.vol-title').text();
     currFm = fmTitle;
-    var fmIntro = findContent(html, '<p class="fm-intro">', '</p>', 0);
-    var fmCover = 'http://img' + findContent(html, 'http://img', '"', 0);
+    var fmIntro = $('div.vol-desc').text().trim();
+    var fmCover = $('img.vol-cover').attr('src');
     var fmPath = path.join(downloadDir, fmTitle);
     var introPath = path.join(downloadDir, fmTitle, fmTitle + '.txt');
     var coverPath = path.join(downloadDir, fmTitle, fmTitle + '.jpg')
@@ -60,12 +75,6 @@ function getFm(fmUrl) {
     }
     setMenuInfo();
   });
-}
-
-function findContent(html, key, endTag, offset) {
-  var start = html.indexOf(key);
-  var end = html.indexOf(endTag, start);
-  return html.substring(start + key.length, end + offset);
 }
 
 function setMenuInfo() {
@@ -118,9 +127,12 @@ function main() {
     input: process.stdin,
     output: process.stdout
   });
-  console.log('请输入您喜欢的落网期刊地址或期刊号\r\n如：http://www.luoo.net/music/613或613');
-  var ask = '默认[http://www.luoo.net]:';
+  console.log('请输入您喜欢的落网期刊地址或期刊号\r\n如：http://www.luoo.net/music/726或726');
+  var ask = '[default is 726]:';
   rl.question(ask, function(answer) {
+    if (answer.trim().length == 0) {
+      answer = 726;
+    }
     if (/^\d+$/.test(answer)) {
       answer = 'http://www.luoo.net/music/' + answer;
     } else {
