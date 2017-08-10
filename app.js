@@ -7,8 +7,7 @@ var fs = require('fs')
   , progress = require('request-progress')
   , ProgressBar = require('progress')
   , open = require('open')
-  , colors = require('colors')
-  , List = require('term-list');
+  , colors = require('colors');
 
 var bar = new ProgressBar('正在下载：:title [:bar] :percent :etas', {
   complete: '=',
@@ -27,22 +26,6 @@ if (!fs.existsSync(downloadDir)) {
   fs.mkdirSync(downloadDir);
 }
 
-var menu = new List({ marker: '>'.red + ' ', markerLength: 2 });
-menu.on('keypress', function(key, index) {
-  if (key.name === 'return') {
-    if (index == -4) {
-      open('https://github.com/stanzhai/luoo-down');
-    }
-    if (index < 0 || isDownloading != -1) {
-      return;
-    }
-    var mp3Info = playList[index];
-    downloadMP3(mp3Info);
-  } else if (key.name === 'q') {
-    return menu.stop();
-  }
-});
-
 function getFm(fmUrl) {
   console.log('正在获取期刊信息...'.yellow);
   request(fmUrl, function (err, res, html) {
@@ -54,7 +37,7 @@ function getFm(fmUrl) {
       var titleInfo = trackItem.find('a.trackname').text().split('.');
       mp3Info.id = titleInfo[0].trim();
       mp3Info.title = titleInfo[1].trim();
-      mp3Info.mp3 = fmt('http://emo.luoo.net/low/luoo/radio%s/%s.mp3', $('span.vol-number').text(), mp3Info.id);
+      mp3Info.mp3 = fmt('http://mp3-cdn2.luoo.net/low/luoo/radio%s/%s.mp3', $('span.vol-number').text(), mp3Info.id);
       mp3Info.artist = trackItem.find('p.artist').text().split(':')[1].trim();
       mp3Info.album = trackItem.find('p.album').text().split(':')[1].trim();
       mp3Info.poster = trackItem.find('a.btn-action-share').attr('data-img');
@@ -73,11 +56,28 @@ function getFm(fmUrl) {
       fs.writeFile(introPath, fmIntro.replace(/<br>/g, '\r\n').trim());
       request(fmCover).pipe(fs.createWriteStream(coverPath));
     }
-    setMenuInfo();
+    createTermMenu();
   });
 }
 
-function setMenuInfo() {
+function createTermMenu() {
+  var List = require('term-list');
+  var menu = new List({ marker: '>'.red + ' ', markerLength: 2 });
+  menu.on('keypress', function(key, index) {
+    if (key.name === 'return') {
+      if (index == -4) {
+        open('https://github.com/stanzhai/luoo-down');
+      }
+      if (index < 0 || isDownloading != -1) {
+        return;
+      }
+      var mp3Info = playList[index];
+      downloadMP3(mp3Info);
+    } else if (key.name === 'q') {
+      return menu.stop();
+    }
+  });
+
   menu.add(-1, '[期刊名]:' + currFm);
   menu.add(-2, Array(60).join('-'));
   for (var i = 0; i < playList.length; i++) {
@@ -149,4 +149,3 @@ process.on('uncaughtException', function(err) {
 });
 
 main();
-
