@@ -19,8 +19,8 @@ var bar = new ProgressBar('正在下载：:title [:bar] :percent :etas', {
 
 var currFm = '';
 var playList = [];
-var isDownloading = -1;   // which music is downloading
-// make download dir if not exists
+var isDownloading = -1;   // the music being downloaded
+// make a download dir if not exists
 var downloadDir = './downloads'
 if (!fs.existsSync(downloadDir)) {
   fs.mkdirSync(downloadDir);
