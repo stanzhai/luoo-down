@@ -127,14 +127,14 @@ function main() {
     input: process.stdin,
     output: process.stdout
   });
-  console.log('请输入您喜欢的落网期刊地址或期刊号\r\n如：http://www.luoo.net/music/726或726');
+  console.log('请输入您喜欢的落网期刊地址或期刊号\r\n如：http://www.luoo.net/vol/index/726或726');
   var ask = '[default is 726]:';
   rl.question(ask, function(answer) {
     if (answer.trim().length == 0) {
       answer = 726;
     }
     if (/^\d+$/.test(answer)) {
-      answer = 'http://www.luoo.net/music/' + answer;
+      answer = 'http://www.luoo.net/vol/index/' + answer;
     } else {
       answer = answer || 'http://www.luoo.net';
     }
